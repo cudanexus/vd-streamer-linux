@@ -1,0 +1,4 @@
+[vdstreamer]
+title=Virtual Desktop Streamer
+description=Streams the desktop to the Virtual Desktop VR app
+ports=38810:38845/tcp|38810:38850/udp

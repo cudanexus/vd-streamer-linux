@@ -1,0 +1,4 @@
+FROM vdstreamer-e2e-x11
+RUN apt-get update -qq && apt-get install -y -qq --no-install-recommends \
+      sway xdg-desktop-portal xdg-desktop-portal-wlr pipewire pipewire-pulse wireplumber pipewire-bin \
+      dbus-daemon python3-dbus python3-gi >/dev/null && rm -rf /var/lib/apt/lists/*

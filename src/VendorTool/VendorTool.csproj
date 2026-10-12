@@ -1,0 +1,18 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- Bootstrap tool: extracts + patches the vendor assemblies from the official macOS
+       installer so the main project can compile against them. Shares the code of
+       src/VDStreamer/Vendor. -->
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net8.0</TargetFramework>
+    <AssemblyName>vdstreamer-vendor</AssemblyName>
+    <Nullable>disable</Nullable>
+    <ImplicitUsings>disable</ImplicitUsings>
+    <InvariantGlobalization>true</InvariantGlobalization>
+    <RootNamespace>VDStreamer</RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Mono.Cecil" Version="0.11.6" />
+    <Compile Include="../VDStreamer/Vendor/*.cs" LinkBase="Vendor" />
+  </ItemGroup>
+</Project>

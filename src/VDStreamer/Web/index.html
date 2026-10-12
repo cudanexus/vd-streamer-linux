@@ -1,0 +1,208 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Virtual Desktop Streamer</title>
+<style>
+  :root {
+    --bg: #f4f5f7; --panel: #ffffff; --text: #1b1d22; --muted: #646b76; --line: #e2e5ea;
+    --accent: #2f6fde; --ok: #1f9d55; --warn: #c27c0e; --bad: #c8382f; --chip: #eef1f6;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root { --bg: #15171b; --panel: #1e2127; --text: #e8eaee; --muted: #9aa1ad; --line: #2c3038; --accent: #6e9cff; --ok: #3cc47c; --warn: #e3a33a; --bad: #ef6b62; --chip: #262a31; }
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--text); font: 14px/1.5 system-ui, -apple-system, "Segoe UI", Roboto, Ubuntu, sans-serif; }
+  header { display: flex; align-items: center; gap: 12px; padding: 18px 24px; border-bottom: 1px solid var(--line); background: var(--panel); }
+  header h1 { font-size: 17px; margin: 0; font-weight: 600; }
+  header .ver { color: var(--muted); font-size: 12px; }
+  main { max-width: 980px; margin: 0 auto; padding: 20px 16px 48px; display: grid; gap: 16px; grid-template-columns: 1fr 1fr; }
+  section { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 16px 18px; min-width: 0; }
+  section.wide { grid-column: 1 / -1; }
+  h2 { font-size: 13px; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); margin: 0 0 12px; font-weight: 600; }
+  .status { display: flex; align-items: center; gap: 10px; font-size: 16px; font-weight: 500; }
+  .dot { width: 11px; height: 11px; border-radius: 50%; background: var(--muted); flex: none; }
+  .dot.ok { background: var(--ok); } .dot.warn { background: var(--warn); } .dot.bad { background: var(--bad); }
+  dl { display: grid; grid-template-columns: max-content 1fr; gap: 6px 14px; margin: 14px 0 0; }
+  dt { color: var(--muted); } dd { margin: 0; overflow-wrap: anywhere; }
+  label.row { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 8px 0; border-top: 1px solid var(--line); }
+  label.row:first-of-type { border-top: 0; }
+  label.row small { display: block; color: var(--muted); }
+  input[type=text], select { width: 100%; padding: 7px 9px; border-radius: 7px; border: 1px solid var(--line); background: var(--bg); color: var(--text); font: inherit; }
+  select { width: auto; min-width: 140px; }
+  .acct { display: grid; grid-template-columns: 110px 1fr auto; gap: 8px; align-items: center; margin-bottom: 8px; }
+  button { padding: 7px 13px; border-radius: 7px; border: 1px solid var(--line); background: var(--chip); color: var(--text); font: inherit; cursor: pointer; }
+  button.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+  button.danger { color: var(--bad); }
+  .pair { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 10px 12px; border-radius: 8px; background: var(--chip); margin-bottom: 8px; }
+  .chips { display: flex; flex-wrap: wrap; gap: 6px; }
+  .chip { background: var(--chip); border-radius: 999px; padding: 2px 10px; font-size: 12px; }
+  .chip.off { opacity: .55; text-decoration: line-through; }
+  pre { margin: 0; max-height: 280px; overflow: auto; font: 12px/1.45 ui-monospace, "SFMono-Regular", Menlo, monospace; white-space: pre-wrap; color: var(--muted); }
+  .muted { color: var(--muted); }
+  #toast { position: fixed; bottom: 18px; left: 50%; transform: translateX(-50%); background: var(--text); color: var(--panel); padding: 8px 14px; border-radius: 8px; opacity: 0; transition: opacity .2s; pointer-events: none; }
+  #toast.show { opacity: .92; }
+  #auth { display: none; }
+  @media (max-width: 760px) { main { grid-template-columns: 1fr; } .acct { grid-template-columns: 90px 1fr auto; } }
+</style>
+</head>
+<body>
+<header>
+  <h1>Virtual Desktop Streamer</h1>
+  <span class="ver" id="ver"></span>
+</header>
+<main>
+  <section class="wide" id="auth">
+    <h2>Not authorized</h2>
+    <p>Open this page with <code>vdstreamer ui</code> (it adds the access token), or paste the token from <code>~/.config/vdstreamer/api-token</code>:</p>
+    <div class="acct"><span>Token</span><input type="text" id="tokenInput"><button class="primary" onclick="saveToken()">Save</button></div>
+  </section>
+
+  <section class="wide">
+    <h2>Status</h2>
+    <div class="status"><span class="dot" id="dot"></span><span id="statusText">Loading…</span></div>
+    <dl id="facts"></dl>
+    <div style="margin-top:12px; display:flex; gap:8px; flex-wrap:wrap">
+      <button onclick="post('/api/disconnect')">Disconnect headset</button>
+      <button onclick="resetCapture()">Choose screens again</button>
+      <button onclick="post('/api/restart')">Restart streamer</button>
+    </div>
+  </section>
+
+  <section class="wide" id="pairingSection" style="display:none">
+    <h2>Pairing requests</h2>
+    <div id="pairing"></div>
+  </section>
+
+  <section>
+    <h2>Headset accounts</h2>
+    <p class="muted" style="margin-top:0">Enter the user name of the account signed in on your headset. Only these accounts can connect.</p>
+    <div id="accounts"></div>
+  </section>
+
+  <section>
+    <h2>Streaming</h2>
+    <div id="options"></div>
+  </section>
+
+  <section>
+    <h2>Video encoders</h2>
+    <div class="chips" id="encoders"></div>
+    <p class="muted" id="envNote"></p>
+  </section>
+
+  <section>
+    <h2>Environment</h2>
+    <dl id="env" style="margin-top:0"></dl>
+  </section>
+
+  <section class="wide">
+    <h2>Log</h2>
+    <pre id="log"></pre>
+  </section>
+</main>
+<div id="toast"></div>
+<script>
+const platforms = [["meta","Meta"],["pico","Pico"],["vive","Viveport"],["google","Android XR"],["pfd","Play for Dream"],["apple","Apple"]];
+const toggles = ["streamAudio","headsetOnlyAudio","autoSelectMicrophone","autoAdjustBitrate","adaptiveBitrate","skipUnchangedFrames","allowRemoteConnections","encryptLocalTraffic","showPairingRequests","lockComputer"];
+const selects = {
+  preferredCodec: [["automatic","Automatic (H.264)"],["h264","H.264"],["hevc","HEVC"]],
+  preferredEncoder: [["auto","Automatic"],["nvenc","NVIDIA NVENC"],["va","VA-API"],["vaapi","VA-API (legacy)"],["x264","x264 (software)"],["openh264","OpenH264 (software)"]],
+  captureBackend: [["auto","Automatic"],["portal","PipeWire portal (Wayland)"],["x11","X11"]],
+  maxFramerate: [["0","As requested by the headset"],["30","30 fps"],["45","45 fps"],["60","60 fps"],["72","72 fps"],["90","90 fps"]],
+  scrollSpeed: [["0.5","0.5x"],["1","1x (like Windows)"],["1.5","1.5x"],["2","2x"],["3","3x"],["-1","1x inverted"]],
+};
+let token = null;
+try {
+  const m = location.hash.match(/token=([0-9a-f]+)/);
+  if (m) { localStorage.setItem("vdsToken", m[1]); history.replaceState(null, "", location.pathname); }
+  token = localStorage.getItem("vdsToken");
+} catch (e) {}
+let built = false, editing = null;
+
+function toast(msg) { const t = document.getElementById("toast"); t.textContent = msg; t.classList.add("show"); clearTimeout(t._h); t._h = setTimeout(() => t.classList.remove("show"), 2200); }
+function saveToken() { token = document.getElementById("tokenInput").value.trim(); try { localStorage.setItem("vdsToken", token); } catch (e) {} refresh(); }
+async function api(method, path, body) {
+  const r = await fetch(path, { method, headers: { "X-VDS-Token": token || "", "Content-Type": "application/json" }, body: body ? JSON.stringify(body) : undefined });
+  if (r.status === 401) { document.getElementById("auth").style.display = "block"; throw new Error("unauthorized"); }
+  const data = await r.json();
+  if (!r.ok) throw new Error(data.error || r.statusText);
+  return data;
+}
+async function post(path, body) { try { await api("POST", path, body); toast("Done"); refresh(); } catch (e) { toast(e.message); } }
+function resetCapture() { post("/api/capture/reset").then(() => toast("The screen picker will be shown on the next connection")); }
+async function setSetting(key, value) { try { await api("POST", "/api/settings", { [key]: value }); toast("Saved"); } catch (e) { toast(e.message); } }
+async function setAccount(platform) {
+  const v = document.getElementById("acct-" + platform).value.trim();
+  try { await api("POST", "/api/accounts", { platform, accountId: v }); toast(v ? "Account saved" : "Account removed"); refresh(); } catch (e) { toast(e.message); }
+}
+function el(tag, attrs, ...kids) { const e = document.createElement(tag); Object.assign(e, attrs || {}); kids.forEach(k => e.append(k)); return e; }
+
+function build(s) {
+  const acc = document.getElementById("accounts");
+  platforms.forEach(([id, name]) => {
+    const input = el("input", { type: "text", id: "acct-" + id, placeholder: "user name", onfocus: () => editing = id, onblur: () => editing = null,
+      onkeydown: e => { if (e.key === "Enter") setAccount(id); } });
+    acc.append(el("div", { className: "acct" }, el("span", {}, name), input, el("button", { onclick: () => setAccount(id) }, "Save")));
+  });
+  const opts = document.getElementById("options");
+  Object.entries(selects).forEach(([key, values]) => {
+    const sel = el("select", { id: "opt-" + key, onchange: e => setSetting(key, e.target.value) });
+    values.forEach(([v, label]) => sel.append(el("option", { value: v }, label)));
+    opts.append(el("label", { className: "row" }, el("span", {}, s.settingsHelp[key].split(":")[0]), sel));
+  });
+  toggles.forEach(key => {
+    const cb = el("input", { type: "checkbox", id: "opt-" + key, onchange: e => setSetting(key, e.target.checked) });
+    opts.append(el("label", { className: "row" }, el("span", {}, s.settingsHelp[key]), cb));
+  });
+  built = true;
+}
+
+function render(s) {
+  document.getElementById("auth").style.display = "none";
+  if (!built) build(s);
+  document.getElementById("ver").textContent = `Linux port ${s.version} · protocol ${s.vendorVersion}`;
+  const dot = document.getElementById("dot");
+  dot.className = "dot " + (s.isConnected ? "ok" : s.connection === "ConnectedToServer" ? "ok" : s.registrationError ? "bad" : "warn");
+  document.getElementById("statusText").textContent = s.status || s.connection;
+  const facts = [["Connection", s.connection], ["Headset", s.headset || "—"], ["Encoder", s.encoder || "—"], ["Capture", s.capture || "—"],
+    ["Performance", s.performance || "—"], ["Monitors", (s.monitors || []).join(", ") || "—"], ["Latency", s.isConnected ? s.latencyMs + " ms" : "—"], ["Network", s.connectionType],
+    ["Server", s.registrationError || "OK"]];
+  if (s.modifiedHostsFile) facts.push(["Warning", "/etc/hosts overrides vrdesktop.net"]);
+  const dl = document.getElementById("facts"); dl.replaceChildren();
+  facts.forEach(([k, v]) => dl.append(el("dt", {}, k), el("dd", {}, String(v))));
+
+  platforms.forEach(([id]) => { const i = document.getElementById("acct-" + id); if (editing !== id && document.activeElement !== i) i.value = s.accounts[id] || ""; });
+  Object.keys(selects).forEach(k => { const e = document.getElementById("opt-" + k); if (document.activeElement !== e) e.value = String(s.settings[k]).toLowerCase(); });
+  toggles.forEach(k => document.getElementById("opt-" + k).checked = !!s.settings[k]);
+
+  const ps = document.getElementById("pairingSection"), p = document.getElementById("pairing");
+  ps.style.display = s.pairingRequests.length ? "block" : "none"; p.replaceChildren();
+  s.pairingRequests.forEach(r => p.append(el("div", { className: "pair" },
+    el("span", {}, `Allow ${r.platform} user `, el("b", {}, r.accountId), " to access this computer?"),
+    el("span", {}, el("button", { className: "primary", onclick: () => post(`/api/pairing/${r.id}/accept`) }, "Allow"), " ",
+      el("button", { className: "danger", onclick: () => post(`/api/pairing/${r.id}/deny`) }, "Deny")))));
+
+  const env = document.getElementById("env"); env.replaceChildren();
+  Object.entries(s.environment).forEach(([k, v]) => env.append(el("dt", {}, k), el("dd", {}, String(v))));
+}
+
+async function refresh() {
+  try { render(await api("GET", "/api/status")); } catch (e) { if (e.message !== "unauthorized") document.getElementById("statusText").textContent = "Streamer not reachable: " + e.message; }
+}
+async function slow() {
+  try {
+    const enc = await api("GET", "/api/encoders"); const box = document.getElementById("encoders"); box.replaceChildren();
+    enc.forEach(e => box.append(el("span", { className: "chip" + (e.broken ? " off" : ""), title: e.broken || e.element }, e.displayName)));
+    if (!enc.length) box.append(el("span", { className: "muted" }, "No GStreamer encoders found"));
+    const log = await api("GET", "/api/logs"); const pre = document.getElementById("log");
+    const atBottom = pre.scrollTop + pre.clientHeight >= pre.scrollHeight - 8;
+    pre.textContent = log.lines.join("\n"); if (atBottom) pre.scrollTop = pre.scrollHeight;
+  } catch (e) {}
+}
+refresh(); slow();
+setInterval(refresh, 2000); setInterval(slow, 6000);
+</script>
+</body>
+</html>

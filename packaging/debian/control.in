@@ -1,0 +1,23 @@
+Package: vdstreamer
+Version: @VERSION@
+Architecture: @ARCH@
+Maintainer: vd-streamer-linux <noreply@localhost>
+Installed-Size: @SIZE@
+Section: net
+Priority: optional
+Homepage: https://www.vrdesktop.net
+Depends: libc6, libstdc++6, libgcc-s1, zlib1g, libssl3 | libssl3t64 | libssl1.1, ca-certificates,
+ libgstreamer1.0-0, gstreamer1.0-plugins-base, gstreamer1.0-plugins-good, gstreamer1.0-plugins-bad,
+ gstreamer1.0-plugins-ugly | gstreamer1.0-openh264, gstreamer1.0-x, gstreamer1.0-pipewire,
+ libpulse0, pulseaudio-utils, libx11-6, libxrandr2, systemd
+Recommends: xdg-desktop-portal, wl-clipboard | xclip, libnotify-bin, gstreamer1.0-vaapi | gstreamer1.0-plugins-bad,
+ ffmpeg, libavcodec61 | libavcodec-extra61
+Suggests: yt-dlp
+Description: Virtual Desktop Streamer for Linux (unofficial port)
+ Streams the Linux desktop, audio and microphone to the Virtual Desktop app on
+ Meta Quest, Pico and other headsets, with keyboard/mouse/controller input.
+ .
+ Reuses the Virtual Desktop protocol libraries from the official macOS streamer
+ (proprietary, Virtual Desktop, Inc.) with a native Linux capture/encode/input
+ layer (PipeWire portal or X11, GStreamer NVENC/VA-API/x264, PulseAudio/PipeWire,
+ uinput). Not affiliated with or supported by Virtual Desktop, Inc.

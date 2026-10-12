@@ -1,0 +1,10 @@
+FROM debian:trixie
+ENV DEBIAN_FRONTEND=noninteractive
+RUN apt-get update -qq && apt-get install -y -qq --no-install-recommends \
+      gstreamer1.0-tools gstreamer1.0-plugins-base gstreamer1.0-plugins-good gstreamer1.0-plugins-bad \
+      gstreamer1.0-plugins-ugly gstreamer1.0-x gstreamer1.0-pipewire \
+      xvfb x11-xserver-utils x11-utils xclip pulseaudio pulseaudio-utils libpulse0 \
+      libavcodec61 libavformat61 libavfilter10 libswscale8 libswresample5 ffmpeg \
+      libx11-6 libxrandr2 ca-certificates procps iproute2 dbus mesa-utils \
+    >/dev/null && rm -rf /var/lib/apt/lists/*
+RUN apt-get update -qq && apt-get install -y -qq --no-install-recommends evtest >/dev/null && rm -rf /var/lib/apt/lists/*

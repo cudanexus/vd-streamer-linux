@@ -1,0 +1,18 @@
+[Unit]
+Description=Virtual Desktop Streamer (Linux port)
+Documentation=file:///usr/share/doc/vdstreamer/README.md
+PartOf=graphical-session.target
+After=graphical-session.target pipewire.service pipewire-pulse.service pulseaudio.service xdg-desktop-portal.service
+Wants=xdg-desktop-portal.service
+
+[Service]
+Type=simple
+# Downloads the protocol libraries from the official macOS release if none are installed yet.
+ExecStartPre=-/usr/bin/vdstreamer setup --if-missing
+ExecStart=/usr/bin/vdstreamer run
+# 75 = restart requested after a protocol library update
+Restart=on-failure
+RestartSec=3
+
+[Install]
+WantedBy=graphical-session.target

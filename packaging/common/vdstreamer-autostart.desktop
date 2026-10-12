@@ -1,0 +1,10 @@
+[Desktop Entry]
+Type=Application
+Name=Virtual Desktop Streamer
+Comment=Start the Virtual Desktop Streamer with the desktop session
+Exec=vdstreamer start
+Icon=vdstreamer
+Terminal=false
+NoDisplay=true
+X-GNOME-Autostart-Phase=Applications
+X-KDE-autostart-after=panel

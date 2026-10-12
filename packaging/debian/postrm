@@ -1,0 +1,6 @@
+#!/bin/sh
+set -e
+if [ "$1" = "remove" ] || [ "$1" = "purge" ]; then
+  command -v udevadm >/dev/null 2>&1 && udevadm control --reload-rules 2>/dev/null || true
+fi
+exit 0

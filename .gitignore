@@ -1,0 +1,11 @@
+# build outputs
+build/
+dist/
+.dotnet/
+bin/
+obj/
+tests/e2e/results/
+# Virtual Desktop's proprietary installers / extracted libraries must not be committed
+*.pkg
+*.exe
+.DS_Store

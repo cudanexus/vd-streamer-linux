@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<service>
+  <short>Virtual Desktop Streamer</short>
+  <description>Streams the desktop to the Virtual Desktop VR app (TCP 38810-38845, UDP 38850 discovery).</description>
+  <port protocol="tcp" port="38810-38845"/>
+  <port protocol="udp" port="38810-38850"/>
+</service>

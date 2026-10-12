@@ -1,0 +1,26 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- Test harness: behaves like a headset on the local network (discovery, pairing, the four
+       streaming channels, settings sync) and records the video it receives. -->
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net8.0</TargetFramework>
+    <Nullable>disable</Nullable>
+    <ImplicitUsings>disable</ImplicitUsings>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <InvariantGlobalization>true</InvariantGlobalization>
+    <Product>HeadsetSim</Product>
+    <NoWarn>$(NoWarn);SYSLIB0023;SYSLIB0021</NoWarn>
+    <VendorDir Condition="'$(VendorDir)' == ''">$(MSBuildThisFileDirectory)../../build/vendor</VendorDir>
+  </PropertyGroup>
+  <ItemGroup>
+    <VendorReference Include="VirtualDesktop.Core;VirtualDesktop.Net;VirtualDesktop.Interfaces;VirtualDesktop.Mobile.Shared;Xenko.VR;Xenko.Core.Mathematics;Newtonsoft.Json;System.Private.ServiceModel;SmartAssembly.Attributes;K4os.Compression.LZ4;System.IO.Hashing" />
+    <Reference Include="@(VendorReference)">
+      <HintPath>$(VendorDir)/%(Identity).dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="System.Private.CoreLib">
+      <HintPath>$(VendorDir)-ref/System.Private.CoreLib.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+  </ItemGroup>
+</Project>

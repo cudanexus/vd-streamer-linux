@@ -1,0 +1,3 @@
+# Virtual Desktop Streamer: let the logged-in user create virtual keyboard/mouse devices
+# for headset input (keyboard, mouse, laser pointers).
+KERNEL=="uinput", SUBSYSTEM=="misc", TAG+="uaccess", OPTIONS+="static_node=uinput"

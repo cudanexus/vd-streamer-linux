@@ -1,0 +1,11 @@
+[Desktop Entry]
+Type=Application
+Name=Virtual Desktop Streamer
+GenericName=VR Desktop Streamer
+Comment=Stream this computer's desktop to Virtual Desktop on your VR headset
+Exec=vdstreamer ui
+Icon=vdstreamer
+Terminal=false
+Categories=Network;RemoteAccess;
+Keywords=VR;Quest;Meta;Pico;Virtual Desktop;stream;
+StartupNotify=false

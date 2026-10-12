@@ -1,0 +1,39 @@
+# Maintainer: you
+# Builds the unofficial Linux port of Virtual Desktop Streamer from source. The Virtual Desktop
+# protocol libraries are extracted from the official macOS installer during build().
+pkgname=vdstreamer
+pkgver=1.0.0
+pkgrel=1
+pkgdesc="Virtual Desktop Streamer for Linux (unofficial port; uses Virtual Desktop's protocol libraries)"
+arch=('x86_64' 'aarch64')
+url="https://www.vrdesktop.net"
+license=('custom')
+depends=('gstreamer' 'gst-plugins-base' 'gst-plugins-good' 'gst-plugins-bad' 'gst-plugin-pipewire'
+         'libpulse' 'libx11' 'libxrandr' 'openssl' 'zlib' 'systemd')
+makedepends=('dotnet-sdk-8.0' 'curl')
+optdepends=('gst-plugins-ugly: x264 software encoder'
+            'gst-plugin-va: VA-API hardware encoding (AMD/Intel)'
+            'xdg-desktop-portal: Wayland screen capture'
+            'ffmpeg: play video files on the headset'
+            'yt-dlp: download videos from the headset'
+            'wl-clipboard: clipboard sharing on Wayland'
+            'xclip: clipboard sharing on X11'
+            'libnotify: pairing notifications')
+options=('!strip' '!debug')
+install=vdstreamer.install
+# Point SRCDEST/startdir at a checkout of vd-streamer-linux (this file lives in packaging/arch).
+_srcroot="$(cd "$startdir/../.." && pwd)"
+# Optional: put VirtualDesktop.Streamer.Setup.pkg next to this PKGBUILD to avoid the download.
+
+build() {
+  cd "$_srcroot"
+  local pkgarg=(--download)
+  [ -f "$startdir/VirtualDesktop.Streamer.Setup.pkg" ] && pkgarg=(--pkg "$startdir/VirtualDesktop.Streamer.Setup.pkg")
+  local a=x64; [ "$CARCH" = aarch64 ] && a=arm64
+  DOTNET="$(command -v dotnet)" ./build.sh "${pkgarg[@]}" --arch "$a" --formats none --version "$pkgver"
+}
+
+package() {
+  local a=x64; [ "$CARCH" = aarch64 ] && a=arm64
+  cp -a "$_srcroot/build/stage/$a/." "$pkgdir/"
+}

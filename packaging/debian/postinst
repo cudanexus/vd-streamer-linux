@@ -1,0 +1,17 @@
+#!/bin/sh
+set -e
+if [ "$1" = "configure" ]; then
+  modprobe uinput 2>/dev/null || true
+  if command -v udevadm >/dev/null 2>&1; then
+    udevadm control --reload-rules 2>/dev/null || true
+    udevadm trigger --subsystem-match=misc --sysname-match=uinput 2>/dev/null || true
+  fi
+  # Start for every user with their graphical session (they can opt out with
+  # 'systemctl --user disable vdstreamer').
+  systemctl --global enable vdstreamer.service >/dev/null 2>&1 || true
+  command -v update-desktop-database >/dev/null 2>&1 && update-desktop-database -q /usr/share/applications || true
+  command -v gtk-update-icon-cache >/dev/null 2>&1 && gtk-update-icon-cache -q -t /usr/share/icons/hicolor || true
+  echo "Virtual Desktop Streamer installed. Log out and back in (or run 'systemctl --user start vdstreamer'),"
+  echo "then add your headset account:  vdstreamer account add meta <your Meta username>"
+fi
+exit 0

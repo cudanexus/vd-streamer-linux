@@ -1,5 +1,7 @@
 # Virtual Desktop Streamer for Linux (unofficial port)
 
+[![Featured by Awesome REA](https://raw.githubusercontent.com/reacher-z/Awesome-REA/477658fa73f6860e86cd1fc526657c2efdc25194/assets/featured-by-awesome-rea-inline.svg)](https://awesomerea.org/resources/vd-streamer-linux-case/)
+
 Stream your Linux desktop, audio and microphone to the **Virtual Desktop** app on Meta Quest,
 Pico, Vive, Play for Dream, Android XR and Apple headsets, with keyboard, mouse and
 laser-pointer input.
